@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="welcome">
+
+        <div>
+            <h1>👋 أهلاً {{ user.username }}</h1>
+            <p>إليك ملخص وضعك المالي</p>
+        </div>
+
+        <div class="actions">
+
+            <a class="btn income-btn"
+               href="{{ url_for('income') }}">
+                + إضافة دخل
+            </a>
+
+            <a class="btn expense-btn"
+               href="{{ url_for('expense') }}">
+                − إضافة مصروف
+            </a>
+
+        </div>
+
+    </div>
+
+    <section class="cards">
+
+        <div class="card">
+            <h3>💰 إجمالي الدخل</h3>
+            <div class="amount income">
+                {{ "{:,.2f}".format(total_income) }} EGP
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>💸 إجمالي المصروفات</h3>
+            <div class="amount expense">
+                {{ "{:,.2f}".format(total_expenses) }} EGP
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>💵 الرصيد المتبقي</h3>
+            <div class="amount balance">
+                {{ "{:,.2f}".format(balance) }} EGP
+            </div>
+        </div>
+
+    </section>
+
+    <section class="chart-grid">
+
+        <div class="chart-box">
+
+            <h2>📊 الدخل مقابل المصروفات</h2>
+
+            <div class="chart-wrapper">
+                <canvas id="financeChart"></canvas>
+            </div>
+
+            <div class="percentages">
+
+                <div>
+                    <strong>الدخل</strong>
+                    <span>
+                        {{ "{:.1f}".format(income_percentage) }}%
+                    </span>
+                </div>
+
+                <div>
+                    <strong>المصروفات</strong>
+                    <span>
+                        {{ "{:.1f}".format(expense_percentage) }}%
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chart-box">
+
+            <h2>🏷️ المصروفات حسب التصنيف</h2>
+
+            <div class="chart-wrapper">
+                <canvas id="categoryChart"></canvas>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="transactions">
+
+        <div class="section-title">
+
+            <h2>🧾 آخر العمليات</h2>
+
+            <a href="{{ url_for('transactions') }}">
+                عرض الكل
+            </a>
+
+        </div>
+
+        {% if recent_transactions %}
+
+            {% for item in recent_transactions %}
+
+            <div class="transaction">
+
+                <div>
+
+                    <strong class="{% if item.type == 'income' %}income{% else %}expense{% endif %}">
+
+                        {% if item.type == "income" %}
+                            💰 + {{ "{:,.2f}".format(item.amount) }} EGP
+                        {% else %}
+                            💸 - {{ "{:,.2f}".format(item.amount) }} EGP
+                        {% endif %}
+
+                    </strong>
+
+                    <div>
+                        {{ item.description }}
+                    </div>
+
+                    <div class="transaction-date">
+                        {{ item.category }}
+                        —
+                        {{ item.date.strftime("%Y-%m-%d %H:%M") }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">
+                لا توجد عمليات حتى الآن.
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+
+const income = {{ total_income }};
+const expenses = {{ total_expenses }};
+
+new Chart(
+    document.getElementById("financeChart"),
+    {
+        type: "doughnut",
+
+        data: {
+            labels: ["الدخل", "المصروفات"],
+
+            datasets: [{
+                data: [income, expenses]
+            }]
+        },
+
+        plugins: [ChartDataLabels],
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+                    position: "bottom"
+                },
+
+                datalabels: {
+
+                    formatter: function(value, context) {
+
+                        const data =
+                            context.chart.data.datasets[0].data;
+
+                        const total =
+                            data.reduce((a, b) => a + b, 0);
+
+                        if (!total) {
+                            return "0%";
+                        }
+
+                        return (
+                            value / total * 100
+                        ).toFixed(1) + "%";
+                    },
+
+                    font: {
+                        weight: "bold",
+                        size: 16
+                    }
+                }
+            }
+        }
+    }
+);
+
+
+const categoryLabels =
+    {{ category_labels | tojson }};
+
+const categoryValues =
+    {{ category_values | tojson }};
+
+new Chart(
+    document.getElementById("categoryChart"),
+    {
+        type: "bar",
+
+        data: {
+
+            labels: categoryLabels,
+
+            datasets: [{
+
+                label: "المصروفات EGP",
+
+                data: categoryValues
+
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    }
+);
+
+</script>
+
+{% endblock %}

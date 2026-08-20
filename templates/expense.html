@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}إضافة مصروف{% endblock %}
+
+{% block content %}
+
+<div class="form-box">
+
+    <h1>💸 إضافة مصروف</h1>
+
+    <form method="POST" class="form">
+
+        <label>المبلغ</label>
+
+        <input
+            type="number"
+            name="amount"
+            step="0.01"
+            min="0.01"
+            required
+        >
+
+        <label>الوصف</label>
+
+        <input
+            type="text"
+            name="description"
+            placeholder="مثال: مواصلات"
+            required
+        >
+
+        <label>التصنيف</label>
+
+        <select name="category" required>
+
+            <option value="">اختر التصنيف</option>
+
+            {% for category in categories %}
+            <option value="{{ category }}">
+                {{ category }}
+            </option>
+            {% endfor %}
+
+        </select>
+
+        <button class="btn expense-btn" type="submit">
+            إضافة المصروف
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

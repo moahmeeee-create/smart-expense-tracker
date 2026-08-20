@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}العمليات{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-head">
+
+        <div>
+            <h1>🧾 العمليات</h1>
+            <p>كل معاملاتك المالية</p>
+        </div>
+
+        <a class="btn" href="{{ url_for('dashboard') }}">
+            العودة للرئيسية
+        </a>
+
+    </div>
+
+    <form class="filters" method="GET">
+
+        <input
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="🔎 ابحث في العمليات..."
+        >
+
+        <select name="type">
+
+            <option value="all"
+                {% if transaction_type == "all" %}selected{% endif %}>
+                كل العمليات
+            </option>
+
+            <option value="income"
+                {% if transaction_type == "income" %}selected{% endif %}>
+                الدخل
+            </option>
+
+            <option value="expense"
+                {% if transaction_type == "expense" %}selected{% endif %}>
+                المصروفات
+            </option>
+
+        </select>
+
+        <button class="btn" type="submit">
+            بحث
+        </button>
+
+    </form>
+
+    <div class="transactions">
+
+        {% if transactions %}
+
+            {% for item in transactions %}
+
+            <div class="transaction">
+
+                <div>
+
+                    <strong class="{% if item.type == 'income' %}income{% else %}expense{% endif %}">
+
+                        {% if item.type == "income" %}
+                            💰 + {{ "{:,.2f}".format(item.amount) }} EGP
+                        {% else %}
+                            💸 - {{ "{:,.2f}".format(item.amount) }} EGP
+                        {% endif %}
+
+                    </strong>
+
+                    <div>
+                        {{ item.description }}
+                    </div>
+
+                    <div class="transaction-date">
+                        {{ item.category }}
+                        —
+                        {{ item.date.strftime("%Y-%m-%d %H:%M") }}
+                    </div>
+
+                </div>
+
+                <div>
+
+                    {% if item.type == "income" %}
+
+                    <a
+                        class="delete-btn"
+                        href="{{ url_for('delete_income', item_id=item.id) }}"
+                        onclick="return confirm('هل تريد حذف العملية؟')"
+                    >
+                        حذف
+                    </a>
+
+                    {% else %}
+
+                    <a
+                        class="delete-btn"
+                        href="{{ url_for('delete_expense', item_id=item.id) }}"
+                        onclick="return confirm('هل تريد حذف العملية؟')"
+                    >
+                        حذف
+                    </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">
+                لا توجد عمليات.
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

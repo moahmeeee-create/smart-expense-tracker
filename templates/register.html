@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}إنشاء حساب{% endblock %}
+
+{% block content %}
+
+<div class="auth-box">
+
+    <h1>🚀 إنشاء حساب</h1>
+    <p>ابدأ إدارة أموالك بسهولة</p>
+
+    <form method="POST" class="form">
+
+        <label>اسم المستخدم</label>
+
+        <input
+            type="text"
+            name="username"
+            required
+        >
+
+        <label>البريد الإلكتروني</label>
+
+        <input
+            type="email"
+            name="email"
+            required
+        >
+
+        <label>كلمة المرور</label>
+
+        <input
+            type="password"
+            name="password"
+            required
+        >
+
+        <label>تأكيد كلمة المرور</label>
+
+        <input
+            type="password"
+            name="confirm_password"
+            required
+        >
+
+        <button class="btn" type="submit">
+            إنشاء الحساب
+        </button>
+
+    </form>
+
+    <p class="auth-link">
+        لديك حساب بالفعل؟
+        <a href="{{ url_for('login') }}">
+            تسجيل الدخول
+        </a>
+    </p>
+
+</div>
+
+{% endblock %}

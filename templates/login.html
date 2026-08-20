@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block content %}
+
+<div class="auth-box">
+
+    <h1>👋 أهلاً بك</h1>
+    <p>سجل دخولك إلى Smart Expense Tracker</p>
+
+    <form method="POST" class="form">
+
+        <label>اسم المستخدم أو البريد الإلكتروني</label>
+
+        <input
+            type="text"
+            name="username_or_email"
+            required
+        >
+
+        <label>كلمة المرور</label>
+
+        <input
+            type="password"
+            name="password"
+            required
+        >
+
+        <button class="btn" type="submit">
+            تسجيل الدخول
+        </button>
+
+    </form>
+
+    <p class="auth-link">
+        ليس لديك حساب؟
+        <a href="{{ url_for('register') }}">
+            إنشاء حساب
+        </a>
+    </p>
+
+</div>
+
+{% endblock %}

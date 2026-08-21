@@ -2,30 +2,36 @@
 
 A full-stack personal expense tracking application built with **Python, Flask, SQLAlchemy, HTML, CSS, and JavaScript**.
 
-Smart Expense Tracker helps users manage their income and expenses, monitor their balance, and keep their financial data organized through a simple and responsive dashboard.
+Smart Expense Tracker helps users manage income and expenses, monitor their balance, organize transactions, set monthly budgets, and export financial data.
 
 ## ✨ Features
 
 - 🔐 User registration and login
 - 💵 Add and manage income
 - 💸 Add and manage expenses
-- 📊 Dashboard with financial summaries
+- 📊 Dashboard with financial summaries and charts
 - 💰 Automatic balance calculation
 - 🏷️ Expense categories
-- 🔎 User-specific transaction data
+- 🔎 Search and filter transactions
+- 👤 User-specific transaction data
 - 🔒 User data isolation
-- 🗑️ Delete expenses
+- 🗑️ Delete income and expenses
+- 💰 Monthly budget management
+- 📥 Export transactions to CSV
+- 📄 Export transactions to PDF
 - 🌐 JSON API for transactions
 - 🧪 Automated tests with pytest
+- ⚙️ GitHub Actions CI
 - 📱 Responsive interface
 
 ## 🛠️ Tech Stack
 
 ### Backend
-- Python
+- Python 3.13
 - Flask
 - Flask-SQLAlchemy
 - SQLAlchemy
+- ReportLab
 
 ### Frontend
 - HTML5
@@ -41,17 +47,33 @@ Smart Expense Tracker helps users manage their income and expenses, monitor thei
 
 ### Deployment
 - Gunicorn
+- GitHub Actions
 
-## 📂 Project Structure
+## 📊 Dashboard
+
+The dashboard provides:
+
+- Total income
+- Total expenses
+- Current balance
+- Expense summaries
+- Recent transactions
+- Visual charts
+
+## 🔎 Search & Filtering
+
+Transactions can be filtered by:
+
+- Transaction type
+- Search text
+- Description
+- Category
+
+## 📥 CSV & 📄 PDF Export
+
+Authenticated users can export their transaction data:
 
 ```text
-smart-expense-v2/
-├── app.py
-├── requirements.txt
-├── README.md
-├── instance/
-├── static/
-│   └── css/
-├── templates/
-└── tests/
-    └── test_app.py
+GET /export/csv
+GET /export/pdf
+

@@ -1,4 +1,8 @@
-from flask import jsonify, Flask, render_template, request, redirect, url_for, session, flash
+from flask import jsonify, Flask, render_template, request, redirect, url_for, session, flash, Response
+import io
+import csv
+from reportlab.pdfgen import canvas
+from io import StringIO
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -173,8 +177,8 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-
     user = db.session.get(User, session["user_id"])
+
 
     total_income = sum(
         item.amount for item in user.incomes
@@ -248,6 +252,45 @@ def dashboard():
     )
 
 
+
+@app.route("/export/csv")
+@login_required
+def export_csv():
+    writer = csv.writer(output)
+    writer.writerow(["Type", "Amount", "Description", "Category", "Date"])
+
+    for item in user.incomes:
+        writer.writerow(["Income", item.amount, item.description, "دخل", item.date])
+
+    for item in user.expenses:
+        writer.writerow(["Expense", item.amount, item.description, item.category, item.date])
+
+    response = Response(output.getvalue(), mimetype="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=transactions.csv"
+    return response
+
+@app.route("/export/pdf")
+@login_required
+def export_pdf():
+    user = db.session.get(User, session["user_id"])
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer)
+    pdf.setTitle("Smart Expense Tracker - Transactions")
+    pdf.drawString(50, 800, "Smart Expense Tracker")
+    pdf.drawString(50, 780, "Transactions")
+    y = 750
+    for item in user.incomes:
+        pdf.drawString(50, y, f"Income | {item.amount} | {item.description} | {item.date}")
+        y -= 20
+    for item in user.expenses:
+        pdf.drawString(50, y, f"Expense | {item.amount} | {item.description} | {item.category} | {item.date}")
+        y -= 20
+        if y < 50:
+            pdf.showPage()
+            y = 800
+    pdf.save()
+    buffer.seek(0)
+    return Response(buffer.getvalue(), mimetype="application/pdf", headers={"Content-Disposition": "attachment; filename=transactions.pdf"})
 @app.route("/income", methods=["GET", "POST"])
 @login_required
 def income():
@@ -349,8 +392,8 @@ def expense():
 @app.route("/transactions")
 @login_required
 def transactions():
-
     user = db.session.get(User, session["user_id"])
+
 
     search = request.args.get(
         "search",

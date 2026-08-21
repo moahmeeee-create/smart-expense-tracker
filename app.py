@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import jsonify, Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -547,6 +547,51 @@ def delete_budget(item_id):
 
     flash("تم حذف الميزانية", "success")
     return redirect(url_for("budget"))
+
+@app.route("/api/transactions")
+@login_required
+def api_transactions():
+    user_id = session["user_id"]
+    search = request.args.get("search", "").strip().lower()
+    transaction_type = request.args.get("type", "all")
+    items = []
+
+    if transaction_type in ("all", "income"):
+        for item in Income.query.filter_by(user_id=user_id).all():
+            items.append({
+                "id": item.id,
+                "type": "income",
+                "amount": item.amount,
+                "description": item.description,
+                "category": "دخل",
+                "date": item.date.isoformat()
+            })
+
+    if transaction_type in ("all", "expense"):
+        for item in Expense.query.filter_by(user_id=user_id).all():
+            items.append({
+                "id": item.id,
+                "type": "expense",
+                "amount": item.amount,
+                "description": item.description,
+                "category": item.category,
+                "date": item.date.isoformat()
+            })
+
+    if search:
+        items = [
+            item for item in items
+            if search in item["description"].lower()
+            or search in item["category"].lower()
+        ]
+
+    items.sort(key=lambda item: item["date"], reverse=True)
+
+    return jsonify({
+        "success": True,
+        "count": len(items),
+        "transactions": items
+    })
 
 if __name__ == "__main__":
     app.run(

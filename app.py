@@ -62,6 +62,15 @@ class Expense(db.Model):
     )
 
 
+
+class Budget(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    month = db.Column(db.String(7), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+
 def login_required(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
@@ -434,6 +443,110 @@ def delete_expense(item_id):
 with app.app_context():
     db.create_all()
 
+
+@app.route("/budget", methods=["GET", "POST"])
+@login_required
+def budget():
+    user_id = session["user_id"]
+    current_month = datetime.now().strftime("%Y-%m")
+
+    categories = [
+        "طعام",
+        "مواصلات",
+        "فواتير",
+        "تسوق",
+        "تعليم",
+        "ترفيه",
+        "صحة",
+        "أخرى"
+    ]
+
+    if request.method == "POST":
+        category = request.form.get("category", "").strip()
+
+        try:
+            amount = float(request.form.get("amount", 0))
+        except ValueError:
+            amount = 0
+
+        if category not in categories:
+            flash("اختر تصنيفًا صحيحًا", "error")
+            return redirect(url_for("budget"))
+
+        if amount <= 0:
+            flash("أدخل ميزانية صحيحة", "error")
+            return redirect(url_for("budget"))
+
+        existing = Budget.query.filter_by(
+            category=category,
+            month=current_month,
+            user_id=user_id
+        ).first()
+
+        if existing:
+            existing.amount = amount
+        else:
+            db.session.add(Budget(
+                category=category,
+                amount=amount,
+                month=current_month,
+                user_id=user_id
+            ))
+
+        db.session.commit()
+        flash("تم حفظ الميزانية بنجاح", "success")
+        return redirect(url_for("budget"))
+
+    budgets = Budget.query.filter_by(
+        month=current_month,
+        user_id=user_id
+    ).all()
+
+    expenses = Expense.query.filter_by(user_id=user_id).all()
+
+    budget_data = []
+
+    for item in budgets:
+        spent = sum(
+            expense.amount
+            for expense in expenses
+            if expense.category == item.category
+            and expense.date.strftime("%Y-%m") == current_month
+        )
+
+        remaining = item.amount - spent
+        percentage = (spent / item.amount * 100) if item.amount else 0
+
+        budget_data.append({
+            "id": item.id,
+            "category": item.category,
+            "amount": item.amount,
+            "spent": spent,
+            "remaining": remaining,
+            "percentage": min(percentage, 100)
+        })
+
+    return render_template(
+        "budget.html",
+        categories=categories,
+        budget_data=budget_data,
+        current_month=current_month
+    )
+
+
+@app.route("/budget/delete/<int:item_id>")
+@login_required
+def delete_budget(item_id):
+    item = Budget.query.filter_by(
+        id=item_id,
+        user_id=session["user_id"]
+    ).first_or_404()
+
+    db.session.delete(item)
+    db.session.commit()
+
+    flash("تم حذف الميزانية", "success")
+    return redirect(url_for("budget"))
 
 if __name__ == "__main__":
     app.run(

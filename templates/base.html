@@ -25,6 +25,7 @@
 
         {% if session.get("user_id") %}
         <a href="{{ url_for('dashboard') }}">الرئيسية</a>
+        <a href="{{ url_for('budget') }}">🎯 الميزانية</a>
         <a href="{{ url_for('transactions') }}">العمليات</a>
         {% endif %}
 

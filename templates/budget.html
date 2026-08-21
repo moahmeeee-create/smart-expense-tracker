@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}الميزانية الشهرية{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="page-head">
+        <div>
+            <h1>🎯 الميزانية الشهرية</h1>
+            <p>إدارة ميزانيتك لشهر {{ current_month }}</p>
+        </div>
+
+        <a class="btn" href="{{ url_for('dashboard') }}">
+            العودة للرئيسية
+        </a>
+    </div>
+
+    <div class="card">
+        <h2>➕ تحديد ميزانية</h2>
+
+        <form method="POST">
+
+            <select name="category" required>
+                <option value="">اختر التصنيف</option>
+
+                {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+
+            <input
+                type="number"
+                name="amount"
+                min="1"
+                step="0.01"
+                placeholder="الميزانية بالجنيه"
+                required
+            >
+
+            <button class="btn" type="submit">
+                حفظ الميزانية
+            </button>
+
+        </form>
+    </div>
+
+    <div class="budget-grid">
+
+        {% for item in budget_data %}
+
+            <div class="card budget-card">
+
+                <div class="budget-header">
+                    <h3>📌 {{ item.category }}</h3>
+
+                    <a
+                        class="delete-btn"
+                        href="{{ url_for('delete_budget', item_id=item.id) }}"
+                        onclick="return confirm('هل تريد حذف الميزانية؟')"
+                    >
+                        حذف
+                    </a>
+                </div>
+
+                <p>
+                    الميزانية:
+                    <strong>
+                        {{ "{:,.2f}".format(item.amount) }} جنيه
+                    </strong>
+                </p>
+
+                <p>
+                    المصروف:
+                    <strong>
+                        {{ "{:,.2f}".format(item.spent) }} جنيه
+                    </strong>
+                </p>
+
+                <p>
+                    المتبقي:
+                    <strong>
+                        {{ "{:,.2f}".format(item.remaining) }} جنيه
+                    </strong>
+                </p>
+
+                <div class="progress">
+                    <div
+                        class="progress-bar"
+                        style="width: {{ item.percentage }}%"
+                    ></div>
+                </div>
+
+                <small>
+                    {{ "%.1f"|format(item.percentage) }}% مستخدم
+                </small>
+
+            </div>
+
+        {% else %}
+
+            <div class="card">
+                <h3>📭 لا توجد ميزانيات</h3>
+                <p>أضف ميزانية لكل تصنيف تريد متابعته.</p>
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}
